@@ -3,10 +3,12 @@ import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [
+    // RouterOutlet
+  ],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
 export class App {
-  protected readonly title = signal('ng-tw-4-app');
+  protected readonly title = signal('Projet1 - Todo List');
 }
