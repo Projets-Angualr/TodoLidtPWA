@@ -1,6 +1,6 @@
 {
-  "name": "ng-tw-4-app",
-  "short_name": "ng-tw-4-app",
+  "name": "todo-list-pwa",
+  "short_name": "todo-list-pwa",
   "display": "standalone",
   "scope": "./",
   "start_url": "./",

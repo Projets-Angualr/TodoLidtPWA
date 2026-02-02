@@ -1,5 +1,5 @@
 {
-  "name": "ng-tw-4-app",
+  "name": "todo-list-pwa",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
