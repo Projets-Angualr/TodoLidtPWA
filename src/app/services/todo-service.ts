@@ -6,60 +6,93 @@ import { Todo } from '../models/todo';
 })
 export class TodoService {
   private todos: Todo[] = [];
-  private storageKey = 'my-todos-app';
+  private storageKey = 'my-todos';
 
   constructor() {
-    // localStorage désactivé en dev
-    const isDev = !!(window as any).devMode || location.hostname === 'localhost';
-    if (!isDev) {
-      this.loadTodos();
-    }
+    this.loadTodos();
   }
 
-  private loadTodos(): void {
+  // 🔄 DOUBLE LOAD: localStorage ET Cache API
+  private async loadTodos(): Promise<void> {
+    // 1. localStorage (priorité)
     try {
       const saved = localStorage.getItem(this.storageKey);
       if (saved) {
         this.todos = JSON.parse(saved).map((t: any) => ({
           ...t,
-          createdAt: new Date(t.createdAt),
+          createdAt: new Date(t.createdAt)
         }));
+        return;
       }
     } catch (e) {
       console.warn('localStorage load failed:', e);
     }
+
+    // 2. Cache API (backup)
+    try {
+      if ('caches' in window) {
+        const cache = await caches.open('todos-cache-v1');
+        const response = await cache.match('/api/todos');
+        if (response) {
+          this.todos = JSON.parse(await response.text()).map((t: any) => ({
+            ...t,
+            createdAt: new Date(t.createdAt)
+          }));
+        }
+      }
+    } catch (e) {
+      console.warn('Cache API load failed:', e);
+    }
   }
 
-  private saveTodos(): void {
+  // 🔄 DOUBLE SAVE: localStorage ET Cache API
+  private async saveTodos(): Promise<void> {
+    // 1. localStorage
     try {
       localStorage.setItem(this.storageKey, JSON.stringify(this.todos));
     } catch (e) {
       console.warn('localStorage save failed:', e);
     }
+
+    // 2. Cache API (non-bloquant)
+    try {
+      if ('caches' in window) {
+        const cache = await caches.open('todos-cache-v1');
+        await cache.put('/api/todos', new Response(JSON.stringify(this.todos)));
+      }
+    } catch (e) {
+      console.warn('Cache API save failed:', e);
+    }
   }
 
-  getTodos(): Todo[] {
-    return [...this.todos]; // Immutabilité
-  }
-
+  // Garder signatures SYNCHRONES (UX fluide)
   addTodo(text: string): void {
     if (!text.trim()) return;
     const todo: Todo = {
       id: crypto.randomUUID(),
       text: text.trim(),
       completed: false,
-      createdAt: new Date(),
+      createdAt: new Date()
     };
     this.todos.unshift(todo);
-    console.log('Todo ajouté:', todo); // DEBUG
+    this.saveTodos(); // async en fond
   }
 
   toggleTodo(id: string): void {
-    const todo = this.todos.find((t) => t.id === id);
-    if (todo) todo.completed = !todo.completed;
+    const todo = this.todos.find(t => t.id === id);
+    if (todo) {
+      todo.completed = !todo.completed;
+      this.saveTodos();
+    }
   }
 
   deleteTodo(id: string): void {
-    this.todos = this.todos.filter((t) => t.id !== id);
+    this.todos = this.todos.filter(t => t.id !== id);
+    this.saveTodos();
+  }
+
+  getTodos(): Todo[] {
+    return [...this.todos];
   }
 }
+
