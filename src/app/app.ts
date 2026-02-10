@@ -26,6 +26,13 @@ export class App {
   ngOnInit() {
     this.todos = this.todoService.getTodos();
   }
+  get remainingCount(): number {
+    return this.todos.filter((todo) => !todo.completed).length;
+  }
+
+  get hasMultipleRemaining(): boolean {
+    return this.remainingCount > 1;
+  }
 
   addTodo() {
     if (this.newTodoText.trim()) {
