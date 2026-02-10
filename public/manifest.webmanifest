@@ -1,6 +1,6 @@
 {
   "name": "todo-list-pwa",
-  "short_name": "todo-list-pwa",
+  "short_name": "todo",
   "display": "standalone",
   "scope": "./",
   "start_url": "./",

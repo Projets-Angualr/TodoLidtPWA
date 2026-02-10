@@ -1,0 +1,2 @@
+ng build --configuration production
+npx http-server dist/ng-tw-4-app/browser -p 4200 -c-1 --cors
